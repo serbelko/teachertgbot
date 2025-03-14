@@ -10,6 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.filters import CommandStart, Command
 from dotenv import load_dotenv
+from database.using import get_text, get_top_users
 
 load_dotenv()
 
@@ -27,8 +28,55 @@ class UserInfo(StatesGroup):
 
 @dp.message(CommandStart())
 async def start(message: types.Message, state: FSMContext):
-    await message.answer("Привет! Я крутой бот. Для начала работы напиши любое слово.\nВведите команду /create чтобы начать") 
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Вопросы и ответы", callback_data="faq"),
+         InlineKeyboardButton(text="Мои сценарии", callback_data="scenarios"),
+         InlineKeyboardButton(text="Топ пользователей", callback_data="top_users")]
+    ])
+    await message.answer("Привет! Я крутой бот. Для начала работы напиши любое слово.\nВведите команду /create чтобы начать или выберите опцию:", reply_markup=markup) 
 
+@dp.callback_query(F.data == 'faq')
+async def ask_and_ques(callback: CallbackQuery):
+    faq_txt = f'1. aaaa ответ: bbbbbbbbb'
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Назад', callback_data='back')]  
+    ])
+    await callback.message.edit_text(faq_txt, reply_markup=markup)
+    await callback.answer()
+
+
+@dp.callback_query(F.data == 'scenarios')
+async def my_scenes(callback: CallbackQuery):
+    user_id = str(callback.from_user.id)
+    scenes = get_text(user_id)
+    if isinstance(scenes,list):
+        scen_text = ''.join([f'{scen['label']}: {scen['text']}' for scen in scenes])
+    else:
+        scen_text = f'{scenes['label']}: {scenes['text']}'
+
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Назад', callback_data='back')]  
+    ])
+
+    await callback.message.edit_text(scen_text, reply_markup=markup)
+    await callback.answer()
+
+@dp.callback_query(F.data=="back")
+async def start(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_reply_markup(reply_markup=None) 
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Вопросы и ответы", callback_data="faq"),
+         InlineKeyboardButton(text="Мои сценарии", callback_data="scenarios"),
+         InlineKeyboardButton(text="Топ пользователей", callback_data="top_users")]
+    ])
+    await callback.message.answer("Привет! Я крутой бот. Для начала работы напиши любое слово.\nВведите команду /create чтобы начать или выберите опцию:", reply_markup=markup) 
+
+
+@dp.message(Command('create'))
+async def sh_lesson(message: types.Message, state: FSMContext):
+    markup = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Math", callback_data="lesson_math"),InlineKeyboardButton(text="Russian", callback_data="lesson_russ")]])
+    await message.answer("Выберите предмет:", reply_markup=markup)
+    await state.set_state(UserInfo.school_lesson)
 
 @dp.callback_query(F.data.startswith("lesson_"))
 async def sc_class(callback: CallbackQuery, state: FSMContext):
@@ -67,13 +115,6 @@ async def extime(callback: CallbackQuery, state: FSMContext):
     
     await callback.message.answer("Введите количество запасного времени в минутах (число):")
     await state.set_state(UserInfo.extra_time)
-
-
-@dp.message(Command('create'))
-async def sh_lesson(message: types.Message, state: FSMContext):
-    markup = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Math", callback_data="lesson_math"),InlineKeyboardButton(text="Russian", callback_data="lesson_russ")]])
-    await message.answer("Выберите предмет:", reply_markup=markup)
-    await state.set_state(UserInfo.school_lesson)
 
 async def main():
     await dp.start_polling(bot)
