@@ -5,12 +5,9 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 from dotenv import load_dotenv
+from handlers import routers
 
 dp = Dispatcher()
-
-@dp.message(CommandStart())
-async def echo(message: Message) -> None:
-    await message.answer("Привет")
 
 
 async def main() -> None:
@@ -18,8 +15,8 @@ async def main() -> None:
     load_dotenv()
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 
-    
-    dp.message.register(echo, F.text)
+    dp.include_routers(*routers)
+    # dp.message.register(echo, F.text)
 
     bot = Bot(token=bot_token)
     await dp.start_polling(bot)

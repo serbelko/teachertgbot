@@ -1,7 +1,7 @@
 # как использовать
 
-from session import SessionLocal
-from base_using import PlanRepository
+from teachertgbot.handlers.session import SessionLocal
+from teachertgbot.handlers.base_using import PlanRepository
 
 db = SessionLocal()
 repo = PlanRepository(db)

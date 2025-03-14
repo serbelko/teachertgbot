@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
-from schemas import PlanORM, Base
+from teachertgbot.handlers.schemas import PlanORM, Base
 
 
 class PlanRepository:
@@ -21,6 +21,6 @@ class PlanRepository:
 
         return new_plan.to_dict()
 
-    def get_plan_by_id(self, plan_id: UUID) -> Optional[PlanORM]:
+    def get_plan_by_user_id(self, user_id: UUID) -> Optional[PlanORM]:
         """Получает план по его ID."""
-        return self.db.query(PlanORM).filter(PlanORM.id == plan_id).first()
+        return self.db.query(PlanORM).filter(PlanORM.id == user_id).first()

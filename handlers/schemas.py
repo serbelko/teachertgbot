@@ -7,20 +7,6 @@ class Base(DeclarativeBase):
     pass
 
 
-class StudentORM(Base):
-    __tablename__ = 'students'
-    
-    user_id = Column("student_id", UUID, primary_key=True)
-    name = Column("email", String, nullable=False)
-    
-    def to_dict(self) -> Dict:
-        model_dict = {
-            "student_id": str(self.user_id),
-            "name": self.name
-        }
-        return model_dict
-
-
 class PlanORM(Base):
     __table__ = "plans"
 
