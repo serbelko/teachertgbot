@@ -8,7 +8,7 @@ from aiogram.types import ReplyKeyboardRemove, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,7 +27,7 @@ class UserInfo(StatesGroup):
 
 @dp.message(CommandStart())
 async def start(message: types.Message, state: FSMContext):
-    await message.answer("Привет! Я крутой бот. Для начала работы напиши любое слово.") 
+    await message.answer("Привет! Я крутой бот. Для начала работы напиши любое слово.\nВведите команду /create чтобы начать") 
 
 
 @dp.callback_query(F.data.startswith("lesson_"))
@@ -69,7 +69,7 @@ async def extime(callback: CallbackQuery, state: FSMContext):
     await state.set_state(UserInfo.extra_time)
 
 
-@dp.message(F.text)
+@dp.message(Command('create'))
 async def sh_lesson(message: types.Message, state: FSMContext):
     markup = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Math", callback_data="lesson_math"),InlineKeyboardButton(text="Russian", callback_data="lesson_russ")]])
     await message.answer("Выберите предмет:", reply_markup=markup)
