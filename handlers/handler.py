@@ -9,6 +9,9 @@ from aiogram.types import ReplyKeyboardRemove, \
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.filters import CommandStart
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -26,26 +29,15 @@ class UserInfo(StatesGroup):
 async def start(message: types.Message, state: FSMContext):
     await message.answer("Привет! Я крутой бот. Для начала работы напиши любое слово.") 
 
-@dp.message(F.text)
-async def sh_lesson(message: types.Message, state: FSMContext):
-    
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        InlineKeyboardButton("Math", callback_data="lesson_math"),
-        InlineKeyboardButton("Russian", callback_data="lesson_russ")
-    )
-
-    await message.answer("Выберите предмет:")
-    await state.set_state(UserInfo.school_lesson)
 
 @dp.callback_query(F.data.startswith("lesson_"))
 async def sc_class(callback: CallbackQuery, state: FSMContext):
     await state.update_data(school_lesson=callback.data)
     await callback.message.edit_reply_markup(reply_markup=None) 
     
-    markup = InlineKeyboardMarkup(row_width=2).add(
-        *[InlineKeyboardButton(str(i), callback_data=f"class_{i}") for i in range(1, 12)]
-    )
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text=str(i), callback_data=f"class_{i}") for i in range(1, 12)]
+    ])
     await callback.message.answer("Выберите класс:", reply_markup=markup)
     await state.set_state(UserInfo.school_class)
 
@@ -59,12 +51,12 @@ async def theme(callback: CallbackQuery, state: FSMContext):
 
 @dp.message(UserInfo.type_lesson)
 async def level(message: Message, state: FSMContext):
-    await state.update_data(type_lesson=message.text)
+    # await state.update_data(type_lesson=message.text)
     
-    markup = InlineKeyboardMarkup(row_width=2).add(
-        InlineKeyboardButton("Базовый", callback_data="level_base"),
-        InlineKeyboardButton("Профильный", callback_data="level_profiled")
-    )
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Базовый", callback_data="level_base"),
+     InlineKeyboardButton(text="Профильный", callback_data="level_profiled")]
+    ])
     await message.answer("Выберите уровень подготовки:", reply_markup=markup)
     await state.set_state(UserInfo.lesson_level)
 
@@ -75,6 +67,13 @@ async def extime(callback: CallbackQuery, state: FSMContext):
     
     await callback.message.answer("Введите количество запасного времени в минутах (число):")
     await state.set_state(UserInfo.extra_time)
+
+
+@dp.message(F.text)
+async def sh_lesson(message: types.Message, state: FSMContext):
+    markup = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Math", callback_data="lesson_math"),InlineKeyboardButton(text="Russian", callback_data="lesson_russ")]])
+    await message.answer("Выберите предмет:", reply_markup=markup)
+    await state.set_state(UserInfo.school_lesson)
 
 async def main():
     await dp.start_polling(bot)
